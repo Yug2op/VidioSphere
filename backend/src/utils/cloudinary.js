@@ -14,7 +14,7 @@ cloudinary.config({
 // Note: Ye settings sensitive information ko protect karte hain kyunki values .env file se read hoti hain
 
 // Function to upload a file to Cloudinary
-const uploadOnOCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath) => {
     try {
         // Step 1: Check karte hain ki local file ka path exist karta hai ya nahi
         // Agar file path nahi mila toh null return karte hain (invalid input)
@@ -46,5 +46,5 @@ const uploadOnOCloudinary = async (localFilePath) => {
 };
 
 // Function ko export karte hain taaki isse baaki files mein import karke use kiya ja sake
-export { uploadOnOCloudinary };
+export { uploadOnCloudinary };
 
