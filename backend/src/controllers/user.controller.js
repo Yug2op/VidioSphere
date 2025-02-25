@@ -4,6 +4,7 @@ import { User } from '../models/user.model.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import fs from "fs"
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -46,16 +47,24 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid email address")
     }
 
-    await User.findOne({
-        $or: [{ username }, { email }]
-    }).then((user) => {
-        if (user) {
-            throw new ApiError(409, "Username or email already exists")
-        }
-    })
-
     const avatarLocalPath = req.files?.avatar[0]?.path;
     const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    const existingUser = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if (existingUser) {
+        console.log("User already exists, deleting uploaded files...");
+
+        // **Delete temporary files before throwing error**
+        if (fs.existsSync(avatarLocalPath)) fs.unlinkSync(avatarLocalPath);
+        if (fs.existsSync(coverImageLocalPath)) fs.unlinkSync(coverImageLocalPath);
+
+        throw new ApiError(409, "Username or email already exists");
+    }
+
+    
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required")
