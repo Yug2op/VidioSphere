@@ -113,7 +113,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
     const videos = await Video.find({
-        owner:userId
+        owner: userId
     }).sort({
         createdAt: -1,
     })
@@ -126,13 +126,13 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     }
 
     return res
-    .json(
-        new ApiResponse(
-            200,
-            videos,
-            "Channel videos fetched successfully."
+        .json(
+            new ApiResponse(
+                200,
+                videos,
+                "Channel videos fetched successfully."
+            )
         )
-    )
 })
 
 export {

@@ -82,10 +82,10 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     }
 
     const subscribers = await Subscription.find({
-        channel : channelId
-    }).populate("subscriber","_id name email");
+        channel: channelId
+    }).populate("subscriber", "_id name email");
 
-    if(subscribers.length === 0){
+    if (subscribers.length === 0) {
         throw new ApiError(
             404,
             "No subscribers found for this channel"
@@ -93,14 +93,14 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     }
 
     return res
-    .json(
-        new ApiResponse(
-            200,
-            subscribers,
-            "Subscribers fetched successfully."
-        )
+        .json(
+            new ApiResponse(
+                200,
+                subscribers,
+                "Subscribers fetched successfully."
+            )
 
-    )
+        )
 
 })
 
@@ -116,7 +116,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     }
 
     const subscribedChannels = await Subscription.find({
-        subscriber:subscriberId
+        subscriber: subscriberId
     }).populate("channel", "_id name email")
 
     if (subscribedChannels.length === 0) {
@@ -127,13 +127,13 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     }
 
     return res
-    .json(
-        new ApiResponse(
-            200,
-            subscribedChannels,
-            "Subscribed channels fetched successfully."
+        .json(
+            new ApiResponse(
+                200,
+                subscribedChannels,
+                "Subscribed channels fetched successfully."
+            )
         )
-    )
 })
 
 export {

@@ -194,39 +194,39 @@ const deleteTweet = asyncHandler(async (req, res) => {
         )
     }
 
-   const requiredtweet =await Tweet.findById(tweetId);
+    const requiredtweet = await Tweet.findById(tweetId);
 
-   if (!requiredtweet) {
+    if (!requiredtweet) {
         throw new ApiError(
             404,
             "Tweet not found"
         )
-   }
+    }
 
-   if (requiredtweet.owner.toString() !== userId.toString()) {
-    throw new ApiError(
-        403,
-        "Forbidden: You can only delete your own tweets"
-    )
-   }
+    if (requiredtweet.owner.toString() !== userId.toString()) {
+        throw new ApiError(
+            403,
+            "Forbidden: You can only delete your own tweets"
+        )
+    }
 
-   const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
+    const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
 
-   if (!deletedTweet) {
-    throw new ApiError(
-        500,
-        "Somthing went wrong, tweet not deleted yet."
-    )
-   }
+    if (!deletedTweet) {
+        throw new ApiError(
+            500,
+            "Somthing went wrong, tweet not deleted yet."
+        )
+    }
 
-   return res
-   .json(
-    new ApiResponse(
-        200,
-        null,
-        "Tweet deleted successfully"
-    )
-   )
+    return res
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                "Tweet deleted successfully"
+            )
+        )
 
 })
 

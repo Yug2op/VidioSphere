@@ -1,6 +1,6 @@
-import {ApiError} from "../utils/ApiErrors.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { ApiError } from "../utils/ApiErrors.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 
 const healthcheck = asyncHandler(async (req, res) => {
@@ -8,13 +8,13 @@ const healthcheck = asyncHandler(async (req, res) => {
 
     try {
         return res
-        .json(
-            new ApiResponse(
-                200,
-                {status:"OK"},
-                "Server is running smoothly."
+            .json(
+                new ApiResponse(
+                    200,
+                    { status: "OK" },
+                    "Server is running smoothly."
+                )
             )
-        )
     } catch (error) {
         throw new ApiError(
             500,
@@ -25,4 +25,4 @@ const healthcheck = asyncHandler(async (req, res) => {
 
 export {
     healthcheck
-    }
+}

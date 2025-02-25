@@ -20,7 +20,7 @@ const uploadOnCloudinary = async (localFilePath) => {
         // Agar file path nahi mila toh null return karte hain (invalid input)
         if (!localFilePath) {
             console.log("Invalid file path");
-            
+
             return null;
         }
         // Step 2: File ko Cloudinary par upload karte hain
@@ -41,7 +41,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
     finally {
         // Step 6: Local temporary file ko delete karte hain in both situation of success and failure kyunki ab uska use nahi hai
-        fs.unlinkSync(localFilePath); 
+        fs.unlinkSync(localFilePath);
     }
 };
 
