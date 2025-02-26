@@ -1,5 +1,6 @@
 import { isValidObjectId } from "mongoose"
 import { Playlist } from "../models/playlist.model.js"
+import { Video } from "../models/video.model.js"
 import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -123,6 +124,15 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         )
     }
 
+    const exsistVideo = await Video.findById(videoId);
+
+    if (!exsistVideo) {
+        throw new ApiError(
+            404,
+            "Video not found"
+        )
+    }
+
     const existPlaylist = await Playlist.findById(playlistId).select("videos");
 
     if (!existPlaylist) {
@@ -185,6 +195,15 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
             new: true,
         }
     )
+
+    const videoInPlaylist = existPlaylist.videos.includes(videoId);
+
+    if (!videoInPlaylist) {
+        throw new ApiError(
+            400,
+            "Video not found in Playlist"
+        )
+    }
 
     if (!existPlaylist) {
         throw new ApiError(
