@@ -1,4 +1,5 @@
 import multer from 'multer';
+import path from "path";
 
 // Storage configuration ke liye multer ka diskStorage use kar rahe hain
 const storage = multer.diskStorage({
@@ -9,8 +10,12 @@ const storage = multer.diskStorage({
     },
     // Ye function file ka naam set karta hai
     filename: function (req, file, cb) {
+        if (!file) {
+            return cb(new Error("File is undefined"), "default.png");
+        }
         // File ka naam 'fieldname-Date.now' format mein banate hain
-        cb(null, file.fieldname + '-' + Date.now() + ".png");
+        const ext = file.originalname ? path.extname(file.originalname) : "";
+        cb(null, file.fieldname + '-' + Date.now() + ext);
     }
 });
 
