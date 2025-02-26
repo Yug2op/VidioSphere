@@ -276,31 +276,43 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const { fullName, email } = req.body
+    try {
+        const { fullName, email } = req.body
 
-    if (!fullName || !email) {
-        throw new ApiError(400, "All fields are required")
-    }
+        if (!fullName || !email) {
+            throw new ApiError(400, "All fields are required")
+        }
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                fullName,
-                email
-            }
-        },
-        { new: true }
-    ).select("-password")
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set: {
+                    fullName,
+                    email
+                }
+            },
+            { new: true }
+        ).select("-password")
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200,
-                user,
-                "Account details updated Successfully"
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200,
+                    user,
+                    "Account details updated Successfully"
+                )
             )
-        )
+    }
+    catch (error) {
+        if (error.code === 11000) {
+            return res
+            .status(400)
+            .json(
+                400,
+                "Duplicate field error: The value already exists."
+            )
+        }
+    }
 })
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
@@ -438,7 +450,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
+                _id: mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
