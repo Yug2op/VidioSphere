@@ -64,20 +64,12 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-    const { channelId } = req.params;
-    const userId = req.user?._id;
+    const channelId = req.user?._id;
 
     if (!isValidObjectId(channelId)) {
         throw new ApiError(
             400,
             "Invalid channel ID"
-        )
-    }
-
-    if (channelId.toString() !== userId.toString()) {
-        throw new ApiError(
-            403,
-            "You are not authorized to view this channel's subscribers."
         )
     }
 
@@ -106,12 +98,12 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { subscriberId } = req.params;
+    const subscriberId = req.user?._id;
 
     if (!isValidObjectId(subscriberId)) {
         throw new ApiError(
             400,
-            "invalid subscriber ID"
+            "Invalid subscriber ID"
         )
     }
 
