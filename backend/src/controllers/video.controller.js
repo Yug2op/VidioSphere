@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import fs from "fs"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -92,30 +93,36 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const { title, description } = req.body;
 
-    if (!title || !description) {
-        throw new ApiError(
-            400,
-            "All fields are required."
-        )
-    }
 
-    const videoFileLocalPath = req.files?.videosFile[0]?.path;
+    const videoFileLocalPath = req.files?.videoFile?.[0]?.path;
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
+
     if (!videoFileLocalPath) {
+        if (fs.existsSync(thumbnailLocalPath)) fs.unlinkSync(thumbnailLocalPath);
         throw new ApiError(
             400,
             "Video file is required."
         )
     }
 
-    const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
     if (!thumbnailLocalPath) {
+        if (fs.existsSync(videoFileLocalPath)) fs.unlinkSync(videoFileLocalPath);
         throw new ApiError(
             400,
             "Thumbnail is required."
         )
     }
 
-    const duration = await getVideoDuration(videoFileLocalPath);
+    if (!title || !description) {
+        if (fs.existsSync(thumbnailLocalPath)) fs.unlinkSync(thumbnailLocalPath);
+        if (fs.existsSync(videoFileLocalPath)) fs.unlinkSync(videoFileLocalPath);
+
+        throw new ApiError(
+            400,
+            "All fields are required."
+        )
+    }
+
 
     const videoFile = await uploadOnCloudinary(videoFileLocalPath);
 
@@ -139,7 +146,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         thumbnail: thumbnail.url,
         title,
         description,
-        duration,
+        duration: videoFile.duration,
         owner: req.user?._id
     })
 
@@ -200,7 +207,14 @@ const updateVideo = asyncHandler(async (req, res) => {
         )
     }
 
-    let updateData = { title, description };
+    if (!title || !description) {
+        throw new ApiError(
+            400,
+            "All fields are required"
+        )
+    }
+
+    const updateData = { title, description };
 
     if (req.file) {
         const thumbnailLocalPath = req.file.path;
@@ -213,6 +227,8 @@ const updateVideo = asyncHandler(async (req, res) => {
         }
         const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
+        if (fs.existsSync(thumbnailLocalPath)) fs.unlinkSync(thumbnailLocalPath)
+
         if (!thumbnail.url) {
             throw new ApiError(
                 400,
@@ -223,6 +239,8 @@ const updateVideo = asyncHandler(async (req, res) => {
         // Add the new thumbnail URL to the updateData
         updateData.thumbnail = thumbnail.url;
     }
+
+    
 
 
     const updatedVideo = await Video.findByIdAndUpdate(videoId,
