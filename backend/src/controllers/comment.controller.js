@@ -15,7 +15,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
             "invalid video Id."
         )
     }
-    const videoObjectId = mongoose.Types.ObjectId(videoId);
+    const videoObjectId = new mongoose.Types.ObjectId(videoId);
 
     const fetchedComments = await Comment.aggregate([
         {
@@ -36,7 +36,19 @@ const getVideoComments = asyncHandler(async (req, res) => {
                 from: "users",
                 localField: "owner",
                 foreignField: "_id",
-                as: "OwnerOfComment"
+                as: "OwnerOfComment",
+                pipeline: [
+                    {
+                        $project: {
+                            password: 0,
+                            email: 0,
+                            watchHistory: 0,
+                            coverImage: 0,
+                            refreshToken: 0,
+                            __v: 0
+                        }
+                    }
+                ]
             },
         },
         {
