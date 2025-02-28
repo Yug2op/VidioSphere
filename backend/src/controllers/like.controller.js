@@ -1,5 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose"
 import { Like } from "../models/like.model.js"
+import { Video } from "../models/video.model.js"
+import { Comment } from "../models/comment.model.js"
+import { Tweet } from "../models/tweet.model.js"
 import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -16,6 +19,17 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         )
     }
 
+    const existingVideo = await Video.findById(videoId);
+
+    if (!existingVideo) {
+        throw new ApiError(
+            404,
+            "Video does not exist"
+        );
+    }
+
+
+
     const existingLike = await Like.findOne({
         video: videoId,
         likedBy: userId
@@ -23,9 +37,8 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
     if (existingLike) {
 
-        removeLike = await Like.findByIdAndDelete(existingLike._id);
-
-        return req
+        const removeLike = await Like.findByIdAndDelete(existingLike._id);
+        return res
             .json(
                 new ApiResponse(
                     200,
@@ -61,6 +74,15 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
             400,
             "Invalid comment ID"
         )
+    }
+
+    const existingComment = await Comment.findById(commentId);
+
+    if (!existingComment) {
+        throw new ApiError(
+            404,
+            "Comment does not exist"
+        );
     }
 
     const existingLike = await Like.findOne({
@@ -110,6 +132,15 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             400,
             "Invalid tweet ID"
         )
+    }
+
+    const existingTweet = await Tweet.findById(tweetId);
+
+    if (!existingTweet) {
+        throw new ApiError(
+            404,
+            "Tweet does not exist"
+        );
     }
 
     const existingLike = await Like.findOne({
