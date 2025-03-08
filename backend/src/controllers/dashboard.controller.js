@@ -7,6 +7,7 @@ import { Like } from "../models/like.model.js"
 import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { User } from "../models/user.model.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
 
@@ -109,32 +110,33 @@ const getChannelStats = asyncHandler(async (req, res) => {
 })
 
 const getChannelVideos = asyncHandler(async (req, res) => {
-    // TODO: Get all the videos uploaded by the channel
+    // Get the logged-in user's ID
+    const {username} = req.params;
 
-    const userId = req.user?._id;
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }   
 
-    const videos = await Video.find({
-        owner: userId
-    }).sort({
-        createdAt: -1,
-    })
 
+    // Fetch videos and populate owner details
+    const videos = await Video.find({ owner: user._id })
+        .populate("owner") 
+        .sort({ createdAt: -1 });
+
+    // Check if videos exist
     if (!videos || videos.length === 0) {
-        throw new ApiError(
-            404,
-            "No videos found for this channel"
-        )
+        throw new ApiError(404, "No videos found for this channel");
     }
 
-    return res
-        .json(
-            new ApiResponse(
-                200,
-                videos,
-                "Channel videos fetched successfully."
-            )
-        )
-})
+    return res.json(
+        new ApiResponse(
+            200, 
+            videos, 
+            "Channel videos fetched successfully.")
+    );
+});
+
 
 export {
     getChannelStats,
