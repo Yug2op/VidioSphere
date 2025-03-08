@@ -41,7 +41,11 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 from: "users",
                 localField: "owner",
                 foreignField: "_id",
-                as: "videosByOwner"
+                as: "videosByOwner",
+                pipeline: [
+                    { $project: { password: 0 } } // Exclude password field
+                ]
+
             }
         },
         {
@@ -53,6 +57,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 duration: 1, // Video duration
                 views: 1, // Number of views
                 isPublished: 1, // Whether the video is published or not
+                createdAt:1,
+                updatedAt:1,
                 owner: {
                     $arrayElemAt: ["$videosByOwner", 0], // Extracts the first user object from the array
                 },
@@ -182,7 +188,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     if (!video) {
         throw new ApiError(
             404,
-            "Vedio not found"
+            "Video not found"
         )
     }
 
@@ -240,7 +246,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         updateData.thumbnail = thumbnail.url;
     }
 
-    
+
 
 
     const updatedVideo = await Video.findByIdAndUpdate(videoId,
