@@ -1,5 +1,6 @@
 import mongoose, { isValidObjectId } from "mongoose"
 import { Video } from "../models/video.model.js"
+import { Like } from "../models/like.model.js"
 import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -57,8 +58,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 duration: 1, // Video duration
                 views: 1, // Number of views
                 isPublished: 1, // Whether the video is published or not
-                createdAt:1,
-                updatedAt:1,
+                createdAt: 1,
+                updatedAt: 1,
                 owner: {
                     $arrayElemAt: ["$videosByOwner", 0], // Extracts the first user object from the array
                 },
@@ -174,32 +175,36 @@ const publishAVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: get video by id
+    const { videoId } = req.params;
+    const userId = req.user ? req.user.id : null;
+
+    // Validate Video ID
     if (!isValidObjectId(videoId)) {
-        throw new ApiError(
-            400,
-            "Invalid Video Id"
-        )
+        throw new ApiError(400, "Invalid Video Id");
     }
 
+    // Fetch video details
     const video = await Video.findById(videoId).populate("owner", "name email");
 
     if (!video) {
-        throw new ApiError(
-            404,
-            "Video not found"
-        )
+        throw new ApiError(404, "Video not found");
     }
 
-    return res
-        .json(
-            new ApiResponse(
-                200,
-                video,
-                "Video fetched successfully"
-            )
-        )
+    // Get total likes for the video
+    const likeCount = await Like.countDocuments({ video: videoId });
+
+    // Check if the user has already liked the video
+    const userLike = userId ? await Like.findOne({ video: videoId, likedBy: userId }) : null;
+
+    // Return video data along with like information
+    return res.json(
+        new ApiResponse(200, {
+            video,
+            likeCount,
+            likedByUser: !!userLike // Returns true if user liked, false otherwise
+        }, "Video fetched successfully")
+    );
+
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
