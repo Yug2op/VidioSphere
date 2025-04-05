@@ -7,23 +7,23 @@ const videoSchema = new Schema(
     {
         videoFile: {
             type: String, // Data type is String
-            require: true, // Video file is mandatory
+            required: true, // Video file is mandatory
         },
         thumbnail: {
             type: String, // Thumbnail image URL as a string
-            require: true, // Thumbnail is mandatory
+            required: true, // Thumbnail is mandatory
         },
         title: {
             type: String, // Video title as a string
-            require: true, // Title is mandatory
+            required: true, // Title is mandatory
         },
         description: {
             type: String, // Video description as a string
-            require: true, // Description is mandatory
+            required: true, // Description is mandatory
         },
         duration: {
             type: Number, // Video duration as a number
-            require: true, // Duration is mandatory
+            required: true, // Duration is mandatory
         },
         views: {
             type: Number, // Number of views as a number

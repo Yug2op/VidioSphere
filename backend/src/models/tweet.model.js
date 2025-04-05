@@ -8,8 +8,11 @@ const tweetSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User"
-    }
-}, { timestamps: true })
+    },
+    likedBy: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }]
+}, { timestamps: true });
 
-
-export const Tweet = mongoose.model("Tweet", tweetSchema)
+export const Tweet = mongoose.model("Tweet", tweetSchema);
