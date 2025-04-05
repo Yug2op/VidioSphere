@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-    addVideoToPlaylist,
+    addVideosToPlaylist,
     createPlaylist,
     deletePlaylist,
     getPlaylistById,
@@ -22,7 +22,7 @@ router
     .patch(verifyJWT, updatePlaylist)
     .delete(verifyJWT, deletePlaylist);
 
-router.route("/add/:videoId/:playlistId").patch(verifyJWT, addVideoToPlaylist);
+router.route("/add/:playlistId").patch(verifyJWT, addVideosToPlaylist);
 router.route("/remove/:videoId/:playlistId").patch(verifyJWT, removeVideoFromPlaylist);
 
 router.route("/user/:userId").get(verifyJWT, getUserPlaylists);
