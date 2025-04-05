@@ -140,14 +140,14 @@ const loginUser = asyncHandler(async (req, res) => {
     const accessTokenOptions = {
         httpOnly: true,
         secure: true,
-        sameSite: "Strict",
+        sameSite: "None",
         maxAge: 24 * 60 * 60 * 1000, // 1 day (matches ACCESS_TOKEN_EXPIRY)
     };
 
     const refreshTokenOptions = {
         httpOnly: true,
         secure: true,
-        sameSite: "Strict",
+        sameSite: "None",
         maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days (matches REFRESH_TOKEN_EXPIRY)
     };
 
