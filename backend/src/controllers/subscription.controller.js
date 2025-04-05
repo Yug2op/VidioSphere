@@ -51,7 +51,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid subscriber ID");
     }
 
-    const subscribedChannels = await Subscription.find({ subscriber: subscriberId }).populate("channel", "_id name");
+    const subscribedChannels = await Subscription.find({ subscriber: subscriberId }).populate("channel", "_id username");
 
     return res.json(new ApiResponse(200, subscribedChannels, subscribedChannels.length ? "Subscribed channels fetched successfully." : "No subscribed channels found."));
 });

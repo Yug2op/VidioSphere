@@ -55,7 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
     })
 
     if (existingUser) {
-        console.log("User already exists, deleting uploaded files...");
+        // console.log("User already exists, deleting uploaded files...");
 
         // **Delete temporary files before throwing error**
         if (fs.existsSync(avatarLocalPath)) fs.unlinkSync(avatarLocalPath);
@@ -136,15 +136,25 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
+    // Cookie options
+    const accessTokenOptions = {
         httpOnly: true,
-        secure: true
-    }
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day (matches ACCESS_TOKEN_EXPIRY)
+    };
+
+    const refreshTokenOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days (matches REFRESH_TOKEN_EXPIRY)
+    };
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, accessTokenOptions)
+        .cookie("refreshToken", refreshToken, refreshTokenOptions)
         .json(
             new ApiResponse(
                 200,
@@ -247,25 +257,30 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-    const { oldPassword, NewPassword } = req.body
+    const { oldPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user?._id)
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
-
-    if (!isPasswordCorrect) {
-        throw new ApiError(400, "Invaid old Password");
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Both old and new passwords are required.");
     }
 
-    user.password = NewPassword
-    await user.save({ validateBeforeSave: false })
+    const user = await User.findById(req.user?._id);
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200,
-            {},
-            "Password Changed Successfully")
-        )
-})
+    if (!user) {
+        throw new ApiError(404, "User not found.");
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Invalid old password.");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(new ApiResponse(200, {}, "Password Changed Successfully"));
+});
+
 
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res
@@ -294,7 +309,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
                 }
             },
             { new: true }
-        ).select("-password")
+        ).select("-password -refreshToken")
 
         return res
             .status(200)
@@ -462,6 +477,11 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 as: "watchHistory",
                 pipeline: [
                     {
+                        $match: {
+                            isPublished: true // Ensures only published videos appear in history
+                        }
+                    },
+                    {
                         $lookup: {
                             from: "users",
                             localField: "owner",
@@ -484,22 +504,25 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                                 $first: "$owner"
                             }
                         }
+                    },
+                    {
+                        $sort: { createdAt: -1 } // Sorts videos from most recent to oldest
                     }
                 ]
             }
+        },
+        {
+            $project: {
+                watchHistory: 1
+            }
         }
-    ])
+    ]);
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                user[0].watchHistory,
-                "Watch history fetched successfully"
-            )
-        )
-})
+    return res.status(200).json(
+        new ApiResponse(200, user[0]?.watchHistory || [], "Watch history fetched successfully")
+    );
+});
+
 
 
 

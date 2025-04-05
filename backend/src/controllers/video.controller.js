@@ -1,6 +1,9 @@
 import mongoose, { isValidObjectId } from "mongoose"
 import { Video } from "../models/video.model.js"
 import { Like } from "../models/like.model.js"
+import { User } from "../models/user.model.js"
+import { Comment } from "../models/comment.model.js"
+import { Playlist } from "../models/playlist.model.js"
 import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -30,8 +33,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
     const match = {
         ...(query ? { title: { $regex: query, $options: "i" } } : {}),
-        ...(userId ? { owner: mongoose.Types.ObjectId(userId) } : {})
-    }
+        ...(userId ? { owner: mongoose.Types.ObjectId(userId) } : {}),
+        ...(userId && userId === req.user._id.toString() ? {} : { isPublished: true }) // Show unpublished only if the user owns them
+    };    
 
     const videos = await Video.aggregate([
         {
@@ -176,36 +180,39 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    const userId = req.user ? req.user.id : null;
+    const userId = req.user._id; // User must be logged in (verifyJWT applied)
 
-    // Validate Video ID
     if (!isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid Video Id");
     }
 
-    // Fetch video details
-    const video = await Video.findById(videoId).populate("owner", "name email");
-
+    const video = await Video.findById(videoId).populate("owner", "username");
     if (!video) {
         throw new ApiError(404, "Video not found");
     }
 
-    // Get total likes for the video
+    // Check if user has already watched the video
+    const user = await User.findById(userId);
+    const hasViewed = user.watchHistory.includes(videoId);
+
+    if (!hasViewed) {
+        // Update user's watch history and increase view count
+        await User.findByIdAndUpdate(userId, { $addToSet: { watchHistory: videoId } });
+        await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
+    }
+
+    // Get total likes and check if the user has liked the video
     const likeCount = await Like.countDocuments({ video: videoId });
+    const userLike = await Like.findOne({ video: videoId, likedBy: userId });
 
-    // Check if the user has already liked the video
-    const userLike = userId ? await Like.findOne({ video: videoId, likedBy: userId }) : null;
-
-    // Return video data along with like information
     return res.json(
         new ApiResponse(200, {
             video,
             likeCount,
-            likedByUser: !!userLike // Returns true if user liked, false otherwise
+            likedByUser: !!userLike
         }, "Video fetched successfully")
     );
-
-})
+});
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -306,6 +313,12 @@ const deleteVideo = asyncHandler(async (req, res) => {
             "Video not found"
         );
     }
+
+    // Remove all related data
+    await Like.deleteMany({ video: videoId }); // Delete likes
+    await Comment.deleteMany({ video: videoId }); // Delete comments
+    await Playlist.updateMany({}, { $pull: { videos: videoId } }); // Remove from playlists
+    await User.updateMany({}, { $pull: { watchHistory: videoId } }); // Remove from watch history
 
     // Send a success response with the deleted video details.
     return res

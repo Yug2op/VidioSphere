@@ -4,6 +4,33 @@ import { ApiError } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
+const getAllTweets = asyncHandler(async (req, res) => {
+    if (!req.user || !req.user._id) {
+        throw new ApiError(401, "Log in to get tweets");
+    }
+
+    try {
+        const tweets = await Tweet.find()
+            .populate("owner", "username avatar fullName")
+            .lean();
+
+        if (!tweets.length) {
+            return res.json(new ApiResponse(200, [], "No Tweet Found"));
+        }
+
+        const tweetsWithLikeData = tweets.map((tweet) => ({
+            ...tweet,
+            likeCount: tweet.likedBy?.length || 0,  // Ensure likedBy is treated as an array
+            likedBy: tweet.likedBy || []  // Default to an empty array if undefined
+        }));
+
+        res.json(new ApiResponse(200, tweetsWithLikeData, "Tweets fetched successfully"));
+    } catch (error) {
+        console.error("Error fetching tweets:", error);
+        throw new ApiError(500, "Internal server error");
+    }
+});
+
 const createTweet = asyncHandler(async (req, res) => {
     //TODO: create tweet
 
@@ -62,14 +89,22 @@ const getUserTweets = asyncHandler(async (req, res) => {
         )
     }
 
-    const userTweets = await Tweet.find({ owner: userId }).sort({ createdAt: -1 });
+    const exsistTweets = await Tweet.find({ owner: userId }).sort({ createdAt: -1 }).populate("owner", "username fullName avatar").lean();
 
-    if (!userTweets || userTweets.length === 0) {
-        throw new ApiError(
-            400,
-            "Tweets not found for this User."
-        )
+    if (!exsistTweets || exsistTweets.length === 0) {
+        return res
+            .json(new ApiResponse
+                (200,
+                    [],
+                    "No Tweet Found"
+                ));
     }
+
+    const userTweets = exsistTweets.map((tweet) => ({
+        ...tweet,
+        likeCount: tweet.likedBy?.length || 0,  // Ensure likedBy is treated as an array
+        likedBy: tweet.likedBy || []  // Default to an empty array if undefined
+    }));
 
     return res
         .json(
@@ -231,6 +266,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
 })
 
 export {
+    getAllTweets,
     createTweet,
     getUserTweets,
     updateTweet,

@@ -108,65 +108,47 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         )
 })
 
-const addVideoToPlaylist = asyncHandler(async (req, res) => {
-    const { playlistId, videoId } = req.params
+const addVideosToPlaylist = asyncHandler(async (req, res) => {
+    const { playlistId } = req.params;
+    const { videoIds } = req.body; // Extract array of video IDs
 
-    if (!isValidObjectId(videoId)) {
-        throw new ApiError(
-            400,
-            "Invalid video ID."
-        )
-    }
     if (!isValidObjectId(playlistId)) {
-        throw new ApiError(
-            400,
-            "Invalid playlist ID."
-        )
+        throw new ApiError(400, "Invalid playlist ID.");
     }
-
-    const exsistVideo = await Video.findById(videoId);
-
-    if (!exsistVideo) {
-        throw new ApiError(
-            404,
-            "Video not found"
-        )
+    if (!Array.isArray(videoIds) || videoIds.length === 0) {
+        throw new ApiError(400, "Invalid or empty videoIds array.");
     }
 
     const existPlaylist = await Playlist.findById(playlistId).select("videos");
-
     if (!existPlaylist) {
-        throw new ApiError(
-            404,
-            "Playlist not found"
-        )
+        throw new ApiError(404, "Playlist not found");
     }
 
-    const videoInPlaylist = existPlaylist.videos.includes(videoId);
-
-    if (!videoInPlaylist) {
-        existPlaylist.videos.push(videoId)
-        const addToPlaylist = await existPlaylist.save()
-
-        return res
-            .json(
-                new ApiResponse(
-                    200,
-                    addToPlaylist,
-                    "Added to playlist"
-                )
-            )
+    const validVideoIds = videoIds.filter(isValidObjectId);
+    if (validVideoIds.length === 0) {
+        throw new ApiError(400, "No valid video IDs provided.");
     }
 
-    return res
-        .json(
-            new ApiResponse(
-                200,
-                existPlaylist,
-                "Video already exist in playlist."
-            )
-        )
-})
+    // Find existing videos in DB
+    const existingVideos = await Video.find({ _id: { $in: validVideoIds } });
+    const existingVideoIds = existingVideos.map(v => v._id.toString());
+
+    if (existingVideos.length === 0) {
+        throw new ApiError(404, "No valid videos found.");
+    }
+
+    // Filter out already added videos
+    const newVideosToAdd = existingVideoIds.filter(id => !existPlaylist.videos.includes(id));
+
+    if (newVideosToAdd.length > 0) {
+        existPlaylist.videos.push(...newVideosToAdd);
+        await existPlaylist.save();
+        return res.json(new ApiResponse(200, existPlaylist, "Videos added to playlist"));
+    }
+
+    return res.json(new ApiResponse(200, existPlaylist, "All videos already exist in the playlist."));
+});
+
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params;
@@ -184,43 +166,24 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         )
     }
 
-    const existPlaylist = await Playlist.findByIdAndUpdate(
-        playlistId,
-        {
-            $pull: {
-                videos: videoId,
-            },
-        },
-        {
-            new: true,
-        }
-    )
+    const existPlaylist = await Playlist.findById(playlistId);
 
-    const videoInPlaylist = existPlaylist.videos.includes(videoId);
+if (!existPlaylist) {
+    throw new ApiError(404, "No such Playlist found.");
+}
 
-    if (!videoInPlaylist) {
-        throw new ApiError(
-            400,
-            "Video not found in Playlist"
-        )
-    }
+if (!existPlaylist.videos.includes(videoId)) {
+    throw new ApiError(400, "Video not found in Playlist");
+}
 
-    if (!existPlaylist) {
-        throw new ApiError(
-            404,
-            "No such Playlist found."
-        )
-    }
+// Remove video
+const updatedPlaylist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    { $pull: { videos: videoId } },
+    { new: true }
+);
 
-
-    return res
-        .json(
-            new ApiResponse(
-                200,
-                existPlaylist,
-                "Video removed from playlist successfully"
-            )
-        )
+return res.json(new ApiResponse(200, updatedPlaylist, "Video removed from playlist successfully"));
 
 })
 
@@ -314,7 +277,7 @@ export {
     createPlaylist,
     getUserPlaylists,
     getPlaylistById,
-    addVideoToPlaylist,
+    addVideosToPlaylist,
     removeVideoFromPlaylist,
     deletePlaylist,
     updatePlaylist

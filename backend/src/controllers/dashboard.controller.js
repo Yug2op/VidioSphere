@@ -46,12 +46,15 @@ const getChannelStats = asyncHandler(async (req, res) => {
         )
     }
 
-    const totalTweetLikes = await Like.countDocuments({
-        tweet: {
-            $in: await Tweet.find({ owner: userId }).distinct("_id")
-        }
-    });
-
+    const totalTweetLikes = await Tweet.aggregate([
+        { $match: { owner: userId } },
+        { $project: { totalLikes: { $size: "$likedBy" } } },
+        { $group: { _id: null, totalTweetLikes: { $sum: "$totalLikes" } } }
+    ]);
+    
+    const totalTweetLikesCount = totalTweetLikes[0]?.totalTweetLikes || 0;
+    
+    
     if (totalTweetLikes === null || totalTweetLikes === undefined) {
         throw new ApiError(
             500,
@@ -98,7 +101,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
                 totalVideos,
                 totalSubscribers,
                 totalVideoLikes,
-                totalTweetLikes,
+                totalTweetLikesCount,
                 totalCommentLikes,
                 totalViews: totalViews[0]?.totalViews || 0,
             },
@@ -111,17 +114,20 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 const getChannelVideos = asyncHandler(async (req, res) => {
     // Get the logged-in user's ID
-    const {username} = req.params;
+    const { username } = req.params;
 
     const user = await User.findOne({ username });
     if (!user) {
         throw new ApiError(404, "User not found");
-    }   
+    }
 
 
     // Fetch videos and populate owner details
     const videos = await Video.find({ owner: user._id })
-        .populate("owner") 
+        .populate({
+            path: "owner",
+            select: "-password -refreshToken" // Exclude password explicitly
+        })
         .sort({ createdAt: -1 });
 
     // Check if videos exist
@@ -131,8 +137,8 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 
     return res.json(
         new ApiResponse(
-            200, 
-            videos, 
+            200,
+            videos,
             "Channel videos fetched successfully.")
     );
 });
