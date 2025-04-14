@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+    --primary: #102542;    /* Deep Navy Blue */
+    --accent: #F87060;     /* Vibrant Coral Red */
+    --text: #E2E8F0;       /* Soft White */
+    --secondary: #829AB1;  /* Muted Gray-Blue */
+    --hover: #F4A261;      /* Warm Gold */
+    --success: #4CAF50;    /* Soft Green */
+  }
+  .bg-primary {
+    background-color: var(--primary);
+  }
+  
+  .text-primary {
+    color: var(--primary);
+  }
+  
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  
+  .text-accent {
+    color: var(--accent);
+  }
+
+  .hover\:text-accent:hover {
+    color: var(--accent);
+  }
+  
+  .bg-secondary {
+    background-color: var(--secondary);
+  }
+  
+  .text-secondary {
+    color: var(--secondary);
+  }
+  
+  .bg-hover:hover {
+    background-color: var(--hover);
+  }
+  
+  .bg-success {
+    background-color: var(--success);
+  }
+  
+  .text-success {
+    color: var(--success);
+  }
+    
