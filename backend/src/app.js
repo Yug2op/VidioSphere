@@ -4,14 +4,20 @@ import cors from "cors"
 
 
 const app = express()
+const allowedOrigins = process.env.CORS_ORIGIN.split(",");
 
-app.use(cors(
-    {
-        origin: process.env.CORS_ORIGIN,
-        credentials: true
-
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // ✅ allow Postman, curl, etc.
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true); // ✅ allow Vercel and localhost
+    } else {
+      return callback(new Error("Not allowed by CORS")); // ❌ block unknown origins
     }
-))
+  },
+  credentials: true,
+}));
+
 app.use(express.json({ limit: '16kb' }))
 app.use(express.urlencoded(
     {
