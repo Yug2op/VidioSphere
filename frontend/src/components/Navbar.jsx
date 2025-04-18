@@ -118,10 +118,9 @@ export default function Navbar() {
   // Logout function
   const handleLogout = async () => {
     try {
-      const res = await API.post("/users/logout");
+      const res = await API.post("/users/logout", {}, { withCredentials: true });
       if (res.data.success) {
-        localStorage.removeItem("authToken");
-        console.log("Logout successful");
+        localStorage.removeItem("authToken"); 
         setUsername("");
         navigate("/login");
         
