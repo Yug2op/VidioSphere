@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import fs from "fs"
 import mongoose from 'mongoose';
+import path from 'path';
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -51,7 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.files?.coverImage[0]?.path
 
     const existingUser = await User.findOne({
-        $or: [{ email },{ username }]
+        $or: [{ email }, { username }]
     })
 
     if (existingUser) {
@@ -97,7 +98,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
     return res.status(201).json(
-        new ApiResponse(201, createdUser ,"User created successfully")
+        new ApiResponse(201, createdUser, "User created successfully")
     )
 
 })
@@ -191,7 +192,9 @@ const logoutUser = asyncHandler(async (req, res) => {
     )
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: "None",
+        path: "/",
     }
 
     res.clearCookie("accessToken", options)
@@ -323,11 +326,11 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     catch (error) {
         if (error.code === 11000) {
             return res
-            .status(400)
-            .json(
-                400,
-                "Duplicate field error: The value already exists."
-            )
+                .status(400)
+                .json(
+                    400,
+                    "Duplicate field error: The value already exists."
+                )
         }
     }
 })
@@ -459,7 +462,8 @@ const getUserChannelProfile = asyncHandler(async (req, res, next) => {
 
         return res.status(200).json(new ApiResponse(200, channel[0], "User channel fetched successfully"));
     } catch (error) {
-        throw new ApiError(401, error?.message || "Internal Error")    }
+        throw new ApiError(401, error?.message || "Internal Error")
+    }
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
