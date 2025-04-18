@@ -163,9 +163,9 @@ export default function ProfilePage() {
 
     const tabs = ["videos", "playlists", "tweets"];
 
-    // Add "watchedHistory" if the condition is met
+    // Add "History" if the condition is met
     if (loggedInUserId && user?._id && loggedInUserId === user._id) {
-        tabs.push("watchedHistory");
+        tabs.push("History");
     }
 
 
@@ -278,7 +278,7 @@ export default function ProfilePage() {
                         )}
 
                         {/* VideosHistory Tab */}
-                        {(activeTab === "watchedHistory" && (
+                        {(activeTab === "History" && (
                             <div className="text-gray-400">
                                 <WatchedVideos />
                             </div>
