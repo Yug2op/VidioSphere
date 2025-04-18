@@ -121,8 +121,10 @@ export default function Navbar() {
       const res = await API.post("/users/logout");
       if (res.data.success) {
         localStorage.removeItem("authToken");
+        console.log("Logout successful");
         setUsername("");
         navigate("/login");
+        
       }
     } catch (error) {
       console.error("Error logging out:", error);
