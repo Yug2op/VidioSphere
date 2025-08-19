@@ -60,5 +60,5 @@ app.use("/api/v1/dashboard", dashboardRouter)
 
 
 
-export default { app };
+export default app;
 
