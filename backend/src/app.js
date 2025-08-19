@@ -1,23 +1,27 @@
-import express from "express"
-import cookieParser from "cookie-parser"
-import cors from "cors"
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
+dotenv.config();
 
-const app = express()
-const allowedOrigins = process.env.CORS_ORIGIN.split(",");
+const app = express();
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // ✅ allow Postman, curl, etc.
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true); // ✅ allow Vercel and localhost
-    } else {
-      return callback(new Error("Not allowed by CORS")); // ❌ block unknown origins
-    }
+const raw = process.env.CORS_ORIGIN || "";
+const allowedOrigins = raw.split(",").map((s) => s.trim()).filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow requests with no origin (curl, mobile apps, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS policy: Origin not allowed"), false);
   },
-  credentials: true,
-}));
+  credentials: true, // allow cookies/auth
+  optionsSuccessStatus: 200,
+};
 
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '16kb' }))
 app.use(express.urlencoded(
     {
@@ -56,5 +60,5 @@ app.use("/api/v1/dashboard", dashboardRouter)
 
 
 
-export { app }
+export default app;
 

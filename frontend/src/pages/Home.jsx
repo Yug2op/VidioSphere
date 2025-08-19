@@ -12,7 +12,7 @@ const Home = () => {
         const fetchVideos = async () => {
             try {
                 const res = await API.get("/videos");
-                let data = res.data?.data || [];
+                let data = res.data?.data || [];    
 
                 const videoList = data.sort(() => Math.random() - 0.5);
                 setVideos(videoList);

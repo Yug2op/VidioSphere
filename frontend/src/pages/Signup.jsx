@@ -13,6 +13,9 @@ const Signup = () => {
     coverImage: null,
   });
   const [error, setError] = useState(null);
+  const [pendingVerify, setPendingVerify] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [emailForVerify, setEmailForVerify] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,24 +30,78 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
-
     const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key]) {
-        data.append(key, formData[key]);
-      }
+    Object.keys(formData).forEach((k) => {
+      if (formData[k]) data.append(k, formData[k]);
     });
 
     try {
-      await API.post("/users/register", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      navigate("/login");
-    } catch (error) {
-      console.error("Signup error:", error.response?.data);
-      setError(error.response?.data?.message || "Signup failed. Please try again.");
+      await API.post("/users/register", data, { headers: { "Content-Type": "multipart/form-data" } });
+      setEmailForVerify(formData.email);
+      setPendingVerify(true);
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
     }
   };
+
+  const handleVerify = async () => {
+    try {
+      await API.post("/users/verify-email", { email: emailForVerify, otp });
+      // success -> redirect to login
+      navigate("/login");
+    } catch (err) {
+      setError(err.response?.data?.message || "Verification failed");
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await API.post("/users/resend-otp", { email: emailForVerify });
+    } catch (err) {
+      setError(err.response?.data?.message || "Resend failed");
+    }
+  };
+
+  if (pendingVerify) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 px-4">
+        <div className="w-full max-w-lg sm:max-w-xl bg-gray-800 rounded-xl p-6 sm:p-8 border border-gray-700 shadow-lg">
+          <h2 className="text-center text-2xl sm:text-3xl font-bold text-gray-100">
+            Verify Your Email
+          </h2>
+          <p className="mt-2 text-center text-sm sm:text-base text-gray-400">
+            A verification code has been sent to{" "}
+            <span className="font-semibold text-gray-200">{emailForVerify}</span>. Please enter the code below to verify your email address.
+          </p>
+          {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
+
+          <div className="mt-6">
+            <input
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter 6-digit code"
+              className="w-full p-2 bg-gray-700 rounded outline-none text-gray-100"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-4 mt-4">
+            <Button
+              onClick={handleVerify}
+              className="w-full bg-blue-500 p-2 rounded text-white text-sm sm:text-base"
+            >
+              Verify Email
+            </Button>
+            <Button
+              onClick={handleResend}
+              className="w-full bg-gray-600 p-2 rounded text-gray-300 text-sm sm:text-base"
+            >
+              Resend Code
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 px-4">

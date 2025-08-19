@@ -45,6 +45,10 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String // Field to store the refresh token
+        },
+        isEmailVerified: {
+            type: Boolean,
+            default: false // Sets default value to false
         }
     },
     { timestamps: true } // Automatically manages createdAt and updatedAt fields
@@ -90,6 +94,11 @@ userSchema.methods.generateRefreshToken = function () {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY // Sets refresh token expiration time
         }
     );
+};
+
+// optional: instance method to compare password
+userSchema.methods.comparePassword = function (candidate) {
+    return bcrypt.compare(candidate, this.password);
 };
 
 // Exporting the User model based on the userSchema
