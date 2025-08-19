@@ -11,6 +11,8 @@ import VideoUpload from './pages/VideoUpload';
 import TwitterPage from './pages/TwitterPage';
 import TweetUpload from './pages/TweetUpload';
 import Dashboard from './pages/Dashboard';
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
         <Route path="/video/:videoId" element={<VideoPlayer />} />
         <Route path="/upload/video" element={<VideoUpload />} />
         <Route path="/upload/tweet" element={<TweetUpload />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </>
 
