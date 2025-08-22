@@ -579,7 +579,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
         const resetLink = `${process.env.CORS_ORIGIN || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
         // Send the reset link in the response for testing (remove in production)
-        console.log('Reset Link:', resetLink);
+        // console.log('Reset Link:', resetLink);
 
         await sendPasswordResetEmail(user, resetToken);
         return res.status(200).json(

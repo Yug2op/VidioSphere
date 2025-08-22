@@ -25,7 +25,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.error("❌ SMTP Error:", error);
   } else {
-    console.log("✅ Server is ready to take messages", success);
+    // console.log("✅ Server is ready to take messages", success);
   }
 });
 
@@ -47,7 +47,7 @@ export const sendEmail = async ({ to, subject, text, html, checkUserExists = fal
   if (checkUserExists) {
     const userExists = await User.findOne({ email: to });
     if (!userExists) {
-      console.log(`User with email ${to} not found. Email not sent.`);
+      // console.log(`User with email ${to} not found. Email not sent.`);
       return { message: 'If an account with this email exists, you will receive a password reset link' };
     }
   }
@@ -62,7 +62,7 @@ export const sendEmail = async ({ to, subject, text, html, checkUserExists = fal
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.messageId);
+    // console.log("Email sent:", info.messageId);
     return info;
   } catch (error) {
     console.error("Error sending email:", error);
@@ -75,7 +75,6 @@ export const sendVerificationEmail = async (user, token) => {
   try {
     // Get the base URL from CORS_ORIGIN, default to localhost if not set
     const baseUrl = process.env.CORS_ORIGIN?.split(',')[1]?.trim() || 'http://localhost:5173';
-    console.log(baseUrl);
     
     // Remove any trailing slashes from the base URL
     const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
@@ -104,11 +103,10 @@ export const sendVerificationEmail = async (user, token) => {
 export const sendPasswordResetEmail = async (user, token) => {
   try {
     const baseUrl = process.env.CORS_ORIGIN?.split(',')[1]?.trim() || 'http://localhost:5173';
-    console.log(baseUrl);
     // Only include token in the URL, not email
     const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
-    console.log('Sending reset link to:', user.email); // Don't log the full link
+    // console.log('Sending reset link to:', user.email); // Don't log the full link
 
     const html = await renderTemplate('passwordReset', {
       resetLink: resetLink,
