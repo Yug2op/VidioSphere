@@ -74,7 +74,9 @@ export const sendEmail = async ({ to, subject, text, html, checkUserExists = fal
 export const sendVerificationEmail = async (user, token) => {
   try {
     // Get the base URL from CORS_ORIGIN, default to localhost if not set
-    const baseUrl = process.env.CORS_ORIGIN?.split(',')[0]?.trim() || 'http://localhost:5173';
+    const baseUrl = process.env.CORS_ORIGIN?.split(',')[1]?.trim() || 'http://localhost:5173';
+    console.log(baseUrl);
+    
     // Remove any trailing slashes from the base URL
     const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
     // Construct the verification link with token only
@@ -101,7 +103,8 @@ export const sendVerificationEmail = async (user, token) => {
 // Send password reset email
 export const sendPasswordResetEmail = async (user, token) => {
   try {
-    const baseUrl = process.env.CORS_ORIGIN?.split(',')[0]?.trim() || 'http://localhost:3000';
+    const baseUrl = process.env.CORS_ORIGIN?.split(',')[1]?.trim() || 'http://localhost:5173';
+    console.log(baseUrl);
     // Only include token in the URL, not email
     const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
