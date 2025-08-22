@@ -2,33 +2,62 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Input, Logo } from "../components/Index.js";
 import API from "../api";
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-
-    const isEmail = identifier.includes("@");
-    const payload = isEmail
-      ? { email: identifier, password }
-      : { username: identifier, password };
+    setError('');
+    setLoading(true);
 
     try {
-      const res = await API.post("/users/login", payload);
-      if (res.data?.success) {
+      const isEmail = identifier.includes("@");
+      const credentials = isEmail
+        ? { email: identifier, password }
+        : { username: identifier, password };
+
+      const response = await API.post("/users/login", credentials);
+
+      if (response.data.data?.accessToken) {
+        localStorage.setItem("authToken", response.data.data.accessToken);
+        toast.success('Login successful!');
         navigate("/");
       } else {
-        setError("Login failed. Please try again.");
+        throw new Error('No access token received');
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setError(error.response?.data?.message || "Login failed");
+      console.error('Login error:', error);
+
+      // Handle unverified email case
+      if (error.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        const errorMessage = 'Please verify your email before logging in. Check your email for the verification link.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else if (error.response?.status === 403) {
+        // Handle other 403 errors
+        const errorMessage = error.response?.data?.message || 'Access denied. Please check your credentials.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        // Handle all other errors
+        const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    navigate(`/forgot-password?email=${encodeURIComponent(identifier)}`);
   };
 
   return (
@@ -36,7 +65,7 @@ const Login = () => {
       <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl bg-gray-800 rounded-xl p-6 sm:p-8 md:p-10 border border-gray-700">
         <div className="mb-6 flex justify-center">
           <span className="inline-block w-24 sm:w-28">
-            <Link to="/login">
+            <Link to="/">
               <Logo width="100%" />
             </Link>
           </span>
@@ -45,49 +74,59 @@ const Login = () => {
           Log In to Your Account
         </h1>
         <p className="mt-2 text-center text-sm sm:text-base text-gray-400">
-          Already have an account?{" "}
+          Don't have an account?{" "}
           <Link
             to="/signup"
             className="font-medium text-blue-400 transition-all duration-200 hover:underline"
           >
-            Signup
+            Sign up
           </Link>
         </p>
+
         {error && (
           <p className="text-red-500 text-center mt-6 text-sm">{error}</p>
         )}
-        <form onSubmit={handleLogin} className="mt-8 space-y-5">
-          <Input
-            label="Email or Username"
-            type="text"
-            placeholder="Email or Username"
-            autoComplete="username"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            className="text-gray-200"
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="text-gray-200"
-          />
-          <div className="text-right mt-1">
-            <Link
-              to="/forgot-password"
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div className="space-y-4">
+            <Input
+              label="Email or Username"
+              type="text"
+              placeholder="Email or Username"
+              autoComplete="username"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="text-gray-200"
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              placeholder="Password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="text-gray-200"
+              required
+            />
+          </div>
+
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
               className="text-sm text-blue-400 hover:underline"
             >
               Forgot password?
-            </Link>
+            </button>
           </div>
+
           <Button
             type="submit"
-            className="w-full bg-blue-500 p-2 rounded text-sm sm:text-base"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors duration-200"
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
       </div>

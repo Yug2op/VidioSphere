@@ -27,7 +27,11 @@ API.interceptors.response.use(
     }
 
     // Handle login failures separately (don't refresh token on login errors)
-    if (originalRequest.url.includes("/users/login") && error.response?.status === 401) {
+    if (originalRequest.url.includes("/users/login") && error.response?.status === 403) {
+      // Check for unverified email error first
+      if (error.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        return Promise.reject(error);
+      }
       return Promise.reject(error);
     }
 
@@ -35,7 +39,6 @@ API.interceptors.response.use(
     if (error.response?.status === 403) {
       console.error("No refresh token available. Redirecting to login...");
       localStorage.removeItem("authToken"); // Clear old token
-
       showSessionExpiredMessage();
       return Promise.reject(error);
     }

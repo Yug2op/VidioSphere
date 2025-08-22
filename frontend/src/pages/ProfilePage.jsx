@@ -28,7 +28,7 @@ export default function ProfilePage() {
     const [uploadType, setUploadType] = useState('');
     const [loading, setLoading] = useState(false);
 
-    
+
 
 
 
@@ -190,7 +190,7 @@ export default function ProfilePage() {
                                     className="absolute top-2 right-4 text-white text-3xl cursor-pointer"
                                     onClick={() => openPopup("coverImage")}
                                 >
-                                    <CameraIcon /> 
+                                    <CameraIcon />
                                 </button>
                             </div>
                         )}

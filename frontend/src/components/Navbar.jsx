@@ -120,10 +120,10 @@ export default function Navbar() {
     try {
       const res = await API.post("/users/logout", {}, { withCredentials: true });
       if (res.data.success) {
-        localStorage.removeItem("authToken"); 
+        localStorage.removeItem("authToken");
         setUsername("");
         navigate("/login");
-        
+
       }
     } catch (error) {
       console.error("Error logging out:", error);
@@ -195,20 +195,20 @@ export default function Navbar() {
     }
   };
 
-  const  handleChangePassword = async (oldPassword, newPassword) => {
+  const handleChangePassword = async (oldPassword, newPassword) => {
     try {
-      const res = await API.post(`/users/change-password`,{oldPassword,newPassword})      
-      
+      const res = await API.post(`/users/change-password`, { oldPassword, newPassword })
 
-      if(res.data?.success){
+
+      if (res.data?.success) {
         alert("Password changed successfully");
         setIsChangePasswordPopupOpen(false);
-        
+
       }
     } catch (error) {
       console.error(error);
-      
-      
+
+
     }
   }
 
@@ -475,11 +475,11 @@ export default function Navbar() {
               {/* Change Password */}
               <div>
                 <button
-                  onClick={() => {setIsChangePasswordPopupOpen(true); setSettingsOpen(false)}}
+                  onClick={() => { setIsChangePasswordPopupOpen(true); setSettingsOpen(false) }}
                   className="w-full bg-red-600 hover:bg-red-700 py-2 rounded cursor-pointer">
                   Change Password
                 </button>
-                </div>
+              </div>
             </div>
           </div>
 
@@ -503,14 +503,14 @@ export default function Navbar() {
       />
       {/* Change Password Popup */}
       {isChnagePasswordPopupOpen && (
-              <ChangePasswordPopup
-                user={{ fullName: userdetails.fullName, email: userdetails.email }}
-                isOpen={isChnagePasswordPopupOpen}
-                onClose={() => setIsChangePasswordPopupOpen(false)}
-                onChangePassword={handleChangePassword}
+        <ChangePasswordPopup
+          user={{ fullName: userdetails.fullName, email: userdetails.email }}
+          isOpen={isChnagePasswordPopupOpen}
+          onClose={() => setIsChangePasswordPopupOpen(false)}
+          onChangePassword={handleChangePassword}
 
-              />
-            )}
+        />
+      )}
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-10 z-50">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">

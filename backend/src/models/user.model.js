@@ -49,7 +49,15 @@ const userSchema = new Schema(
         isEmailVerified: {
             type: Boolean,
             default: false // Sets default value to false
-        }
+        },
+        emailVerificationToken: {
+            type: String,
+            select: false
+        },
+        emailVerificationExpires: {
+            type: Date,
+            select: false
+        },
     },
     { timestamps: true } // Automatically manages createdAt and updatedAt fields
 );

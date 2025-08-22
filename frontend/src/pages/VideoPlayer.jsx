@@ -254,13 +254,13 @@ export default function VideoPlayer() {
                                         <img src={comment.owner.avatar} alt={comment.owner.username} className="w-8 h-8 rounded-full" />
                                         <span className="text-text font-medium">{comment.owner.username}</span>
 
-                                         {/* Like Button Next to Username */}
-                                         <button
-                                                    className={`flex items-center gap-1 text-gray-400 hover:text-red-500`}
-                                                >
-                                                    <Heart size={16} />
-                                                    <span className="text-sm">2</span>
-                                                </button>
+                                        {/* Like Button Next to Username */}
+                                        <button
+                                            className={`flex items-center gap-1 text-gray-400 hover:text-red-500`}
+                                        >
+                                            <Heart size={16} />
+                                            <span className="text-sm">2</span>
+                                        </button>
                                     </div>
 
                                     {/* Show three-dot menu only if the logged-in user owns the comment */}

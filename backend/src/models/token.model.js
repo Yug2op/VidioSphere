@@ -14,4 +14,5 @@ const TokenSchema = new mongoose.Schema(
 // optional TTL index to cleanup expired docs (expiresAt must be in the future)
 TokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export default mongoose.model("Token", TokenSchema);
+export const Token = mongoose.model("Token", TokenSchema);
+
